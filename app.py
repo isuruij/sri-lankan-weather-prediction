@@ -339,45 +339,25 @@ elif page == "📊 Model Performance":
 elif page == "🔍 Explainability":
     st.header("🔍 Model Explainability (XAI)")
     
-    tab1, tab2 = st.tabs(["SHAP", "LIME"])
+    st.subheader("SHAP (SHapley Additive exPlanations)")
+    st.write("""
+    SHAP values show how each feature contributes to the prediction. 
+    Positive SHAP values push the prediction toward **Rain**, while 
+    negative values push toward **No Rain**.
+    """)
     
-    with tab1:
-        st.subheader("SHAP (SHapley Additive exPlanations)")
-        st.write("""
-        SHAP values show how each feature contributes to the prediction. 
-        Positive SHAP values push the prediction toward **Rain**, while 
-        negative values push toward **No Rain**.
-        """)
-        
-        shap_plots = {
-            'SHAP Summary (Bar)': 'plots/14_shap_summary_bar.png',
-            'SHAP Beeswarm': 'plots/15_shap_beeswarm.png',
-            'SHAP Dependence': 'plots/16_shap_dependence.png',
-            'SHAP Waterfall (Rain)': 'plots/17_shap_waterfall_rain.png',
-            'SHAP Waterfall (No Rain)': 'plots/18_shap_waterfall_norain.png',
-        }
-        
-        for title, path in shap_plots.items():
-            if os.path.exists(path):
-                st.subheader(title)
-                st.image(path, use_container_width=True)
+    shap_plots = {
+        'SHAP Summary (Bar)': 'plots/14_shap_summary_bar.png',
+        'SHAP Beeswarm': 'plots/15_shap_beeswarm.png',
+        'SHAP Dependence': 'plots/16_shap_dependence.png',
+        'SHAP Waterfall (Rain)': 'plots/17_shap_waterfall_rain.png',
+        'SHAP Waterfall (No Rain)': 'plots/18_shap_waterfall_norain.png',
+    }
     
-    with tab2:
-        st.subheader("LIME (Local Interpretable Model-agnostic Explanations)")
-        st.write("""
-        LIME explains individual predictions by fitting a simple, interpretable model 
-        around the specific data point.
-        """)
-        
-        lime_plots = {
-            'LIME: Rain Prediction': 'plots/19_lime_rain.png',
-            'LIME: No Rain Prediction': 'plots/20_lime_norain.png',
-        }
-        
-        for title, path in lime_plots.items():
-            if os.path.exists(path):
-                st.subheader(title)
-                st.image(path, use_container_width=True)
+    for title, path in shap_plots.items():
+        if os.path.exists(path):
+            st.subheader(title)
+            st.image(path, use_container_width=True)
 
 # ---------------------------------------------------------------
 # PAGE 4: DATA INSIGHTS

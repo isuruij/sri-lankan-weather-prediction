@@ -2,14 +2,12 @@
 ===============================================================================
 Sri Lanka Weather Prediction - Explainability & Interpretation (XAI)
 ===============================================================================
-Explainability Methods Applied:
-    1. SHAP (SHapley Additive exPlanations)
+Explainability Method Applied:
+    SHAP (SHapley Additive exPlanations)
        - Global feature importance 
        - Summary plot (beeswarm)
        - Dependence plots
        - Waterfall plots for individual predictions
-    2. LIME (Local Interpretable Model-agnostic Explanations)
-       - Individual prediction explanations for rain and no-rain
 ===============================================================================
 """
 
@@ -20,9 +18,6 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 import shap
-import lime
-import lime.lime_tabular
-# sklearn imports not needed (using only SHAP and LIME)
 import joblib
 import os
 import warnings
@@ -167,75 +162,10 @@ for i, row in shap_df.head(10).iterrows():
     print(f"  {row['Feature']:>35s}: {row['Mean |SHAP|']:.4f}")
 
 # ---------------------------------------------------------------
-# 2. LIME ANALYSIS
+# 2. INTERPRETATION SUMMARY
 # ---------------------------------------------------------------
 print("\n" + "=" * 70)
-print("2. LIME (Local Interpretable Model-agnostic Explanations)")
-print("=" * 70)
-
-print("\nSetting up LIME explainer...")
-
-# Create LIME explainer
-lime_explainer = lime.lime_tabular.LimeTabularExplainer(
-    training_data=X_train.values,
-    feature_names=feature_columns,
-    class_names=['No Rain', 'Rain'],
-    mode='classification',
-    random_state=42
-)
-
-# Explain a rain prediction
-print("Generating LIME explanation for a Rain prediction...")
-if len(rain_correct) > 0:
-    idx = rain_correct[0]
-    exp_rain = lime_explainer.explain_instance(
-        X_test_sample.iloc[idx].values,
-        model.predict_proba,
-        num_features=15,
-        labels=[1]
-    )
-    
-    fig = exp_rain.as_pyplot_figure(label=1)
-    fig.set_size_inches(14, 8)
-    plt.title('LIME Explanation: Rain Prediction', fontsize=14, fontweight='bold')
-    plt.tight_layout()
-    plt.savefig('plots/19_lime_rain.png', dpi=150, bbox_inches='tight')
-    plt.close('all')
-    print("✓ LIME rain explanation saved")
-    
-    # Print LIME explanation
-    print("\n--- LIME Explanation (Rain Prediction) ---")
-    print(f"Predicted: Rain (prob = {model.predict_proba(X_test_sample.iloc[idx:idx+1])[0][1]:.4f})")
-    print(f"Actual: {'Rain' if y_test_sample.iloc[idx] == 1 else 'No Rain'}")
-    print("\nTop contributing features:")
-    for feat, weight in exp_rain.as_list(label=1):
-        direction = "→ Rain" if weight > 0 else "→ No Rain"
-        print(f"  {feat:>50s}: {weight:>+.4f} ({direction})")
-
-# Explain a no-rain prediction
-print("\nGenerating LIME explanation for a No Rain prediction...")
-if len(no_rain_correct) > 0:
-    idx = no_rain_correct[0]
-    exp_norain = lime_explainer.explain_instance(
-        X_test_sample.iloc[idx].values,
-        model.predict_proba,
-        num_features=15,
-        labels=[0]
-    )
-    
-    fig = exp_norain.as_pyplot_figure(label=0)
-    fig.set_size_inches(14, 8)
-    plt.title('LIME Explanation: No Rain Prediction', fontsize=14, fontweight='bold')
-    plt.tight_layout()
-    plt.savefig('plots/20_lime_norain.png', dpi=150, bbox_inches='tight')
-    plt.close('all')
-    print("✓ LIME no-rain explanation saved")
-
-# ---------------------------------------------------------------
-# 3. INTERPRETATION SUMMARY
-# ---------------------------------------------------------------
-print("\n" + "=" * 70)
-print("3. INTERPRETATION SUMMARY")
+print("2. INTERPRETATION SUMMARY")
 print("=" * 70)
 
 print("""
@@ -283,7 +213,5 @@ print("  15_shap_beeswarm.png         - SHAP beeswarm (impact + direction)")
 print("  16_shap_dependence.png       - SHAP dependence for top features")
 print("  17_shap_waterfall_rain.png   - SHAP waterfall for rain prediction")
 print("  18_shap_waterfall_norain.png - SHAP waterfall for no-rain prediction")
-print("  19_lime_rain.png             - LIME explanation for rain prediction")
-print("  20_lime_norain.png           - LIME explanation for no-rain")
 
 print("\n✓ Explainability analysis complete! Run 'py -m streamlit run app.py' for the front-end demo.")

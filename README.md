@@ -10,7 +10,7 @@
 |------|---------|
 | `01_data_preprocessing.py` | Data loading, cleaning, EDA, feature engineering, splitting |
 | `02_model_training.py` | XGBoost model training, hyperparameter tuning, evaluation |
-| `03_explainability.py` | SHAP and LIME explainability analysis |
+| `03_explainability.py` | SHAP explainability analysis |
 | `app.py` | Streamlit front-end for predictions & explanations |
 | `SriLanka_Weather_Dataset.csv` | Raw dataset (Kaggle) |
 | `processed_data/` | Cleaned & split data, scaler, encoders |
@@ -102,36 +102,34 @@ Tables, graphs, and plots | ✅ Confusion Matrix (raw + normalized) ✅ ROC Curv
 
 ### 4. Explainability & Interpretation (20 marks)
 
-The assignment requires **at least one** XAI method. We implemented **two** methods:
+The explainability method applied is **SHAP (SHapley Additive exPlanations)**.
 
-**Method** | **How It Was Implemented**
----|---
-**SHAP** | ✅ `TreeExplainer` computes SHAP values for 1,000 test samples. Generated: **(1)** Summary bar plot showing global feature importance via mean absolute SHAP values, **(2)** Beeswarm plot showing the direction and magnitude of each feature's impact, **(3)** Dependence plots for top 4 features showing interaction effects, **(4)** Waterfall plots for individual rain and no-rain predictions.
-**LIME** | ✅ `LimeTabularExplainer` generates local explanations for individual predictions. Generated LIME explanation plots for both a correct rain prediction and a correct no-rain prediction, showing which features pushed the prediction in each direction.
+SHAP uses `TreeExplainer` to compute Shapley values for 1,000 test samples, providing both global and local explanations of the model's behavior. The following visualizations were generated: a summary bar plot, a beeswarm plot, dependence plots for the top 4 features, and waterfall plots for individual predictions.
 
-**What the model has learned:**
-- `precipitation_hours` is the single most influential feature — if it rained for many hours today, tomorrow is very likely to be rainy too.
-- `precipitation_sum` and `rain_sum` reinforce this precipitation persistence pattern.
-- `temp_diff_apparent` (gap between actual and "feels like" temperature) serves as a humidity proxy.
-- `day_of_year` captures Sri Lanka's monsoon seasonality without explicitly encoding calendar features.
-- Wind conditions signal approaching weather fronts.
+**What the model has learned (SHAP):**
+SHAP analysis reveals that the model has learned strong precipitation persistence patterns — if it rained today, tomorrow is very likely to be rainy as well. The model also learned that specific temperature differentials between actual and apparent ("feels like") temperatures serve as effective humidity indicators. Seasonal patterns based on the day of the year capture Sri Lanka's monsoon cycles, and wind conditions signal the approach of weather systems that bring rainfall.
 
-**Alignment with domain knowledge:**
-- ✅ Sri Lanka's two monsoon seasons (NE Monsoon Dec–Feb, SW Monsoon May–Sep) are captured by seasonal features
-- ✅ Precipitation persistence (today's rain predicts tomorrow) is a well-established meteorological phenomenon
-- ✅ City-level variations reflect the geographic wet zone (Colombo, Ratnapura) vs. dry zone (Jaffna, Anuradhapura) differences
-- ✅ Solar radiation inversely correlates with rainfall (cloudy/rainy days have less radiation)
+**Most influential features (SHAP):**
+- `precipitation_hours` is the single most influential feature with the highest mean absolute SHAP value, far exceeding all other features.
+- `precipitation_sum` is the second most important, reinforcing the precipitation persistence pattern.
+- `temp_diff_apparent` ranks third — the gap between actual and apparent temperature acts as a humidity proxy that strongly influences rain probability.
+- `day_of_year` captures monsoon seasonality. Higher SHAP values during May–September (SW Monsoon) and December–February (NE Monsoon) reflect real-world rainfall patterns.
+- `weathercode`, `daylight_hours`, `rain_sum`, and `elevation` provide additional predictive signals.
 
-**Implementation:** See `03_explainability.py` (Sections 1–3)
+**Domain knowledge alignment (SHAP):**
+- ✅ The dominance of precipitation-related features aligns with the well-established meteorological principle that rainfall is often persistent — weather systems don't change abruptly.
+- ✅ The model correctly identifies Sri Lanka's two monsoon seasons through the `day_of_year` feature, matching known NE Monsoon (Dec–Feb) and SW Monsoon (May–Sep) periods.
+- ✅ Higher elevation cities (e.g., Badulla at 680m) show different rainfall patterns than coastal cities, which the model captures through the `elevation` feature — consistent with orographic rainfall effects.
+- ✅ Solar radiation is inversely correlated with rain prediction, reflecting the physical reality that cloudy/rainy days receive less solar radiation.
 
-**Plots Generated:**
-- `plots/14_shap_summary_bar.png` — SHAP global importance
-- `plots/15_shap_beeswarm.png` — SHAP beeswarm (impact + direction)
-- `plots/16_shap_dependence.png` — SHAP dependence for top features
-- `plots/17_shap_waterfall_rain.png` — SHAP waterfall for a rain prediction
-- `plots/18_shap_waterfall_norain.png` — SHAP waterfall for a no-rain prediction
-- `plots/19_lime_rain.png` — LIME explanation (rain)
-- `plots/20_lime_norain.png` — LIME explanation (no rain)
+**Implementation:** See `03_explainability.py`
+
+**SHAP Plots Generated:**
+- `plots/14_shap_summary_bar.png` — Global feature importance ranking
+- `plots/15_shap_beeswarm.png` — Feature impact direction and magnitude
+- `plots/16_shap_dependence.png` — Interaction effects for top features
+- `plots/17_shap_waterfall_rain.png` — Individual rain prediction breakdown
+- `plots/18_shap_waterfall_norain.png` — Individual no-rain prediction breakdown
 
 ---
 
