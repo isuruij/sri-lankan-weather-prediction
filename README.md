@@ -1,0 +1,217 @@
+# 🌧️ Sri Lanka Rain Prediction — Machine Learning Assignment
+
+> **Goal:** Predict whether it will rain tomorrow in Sri Lanka using the XGBoost algorithm, with full explainability using XAI techniques and a Streamlit front-end.
+
+---
+
+## Project Structure
+
+| File | Purpose |
+|------|---------|
+| `01_data_preprocessing.py` | Data loading, cleaning, EDA, feature engineering, splitting |
+| `02_model_training.py` | XGBoost model training, hyperparameter tuning, evaluation |
+| `03_explainability.py` | SHAP, LIME, Feature Importance, PDP analysis |
+| `app.py` | Streamlit front-end for predictions & explanations |
+| `SriLanka_Weather_Dataset.csv` | Raw dataset (Kaggle) |
+| `processed_data/` | Cleaned & split data, scaler, encoders |
+| `models/` | Trained XGBoost model & hyperparameters |
+| `plots/` | All generated EDA and evaluation plots (23 total) |
+
+---
+
+## How to Run
+
+```bash
+# Step 1: Install dependencies
+py -m pip install pandas numpy scikit-learn matplotlib seaborn shap lime xgboost joblib streamlit
+
+# Step 2: Run preprocessing
+py 01_data_preprocessing.py
+
+# Step 3: Train the model
+py 02_model_training.py
+
+# Step 4: Run explainability analysis
+py 03_explainability.py
+
+# Step 5: Launch the front-end (Bonus)
+py -m streamlit run app.py
+```
+
+---
+
+## Assignment Requirements & Implementation
+
+### 1. Problem Definition & Dataset Collection (15 marks)
+
+**Requirement** | **How It Was Implemented**
+---|---
+Clearly describe the problem and its relevance | The problem is **binary classification**: predicting whether it will rain the next day in Sri Lanka. This is relevant for agriculture, disaster preparedness, and daily planning in a tropical island nation heavily affected by monsoons.
+Data source | **Sri Lanka Weather Dataset** from Kaggle, originally sourced from the Open-Meteo historical weather API. Covers **30 cities** across Sri Lanka from **2010-01-01 to 2023-06-16**.
+Features and target variable | **32 features** including temperature (max, min, mean, apparent), precipitation, wind speed/gusts/direction, solar radiation, evapotranspiration, elevation, plus engineered features (season, temporal, rain indicators). **Target:** `will_rain_tomorrow` (1 = rain, 0 = no rain).
+Size of the dataset | **147,480 rows × 24 columns** (raw), **147,450 rows × 32 features** after preprocessing. Split into Train (103,215 / 70%), Validation (22,117 / 15%), Test (22,118 / 15%).
+Preprocessing done | ✅ Missing value handling (dropped NaN rows) ✅ Datetime conversion (time → year, month, day_of_year, day_of_week, quarter, is_weekend) ✅ Feature engineering (temperature ranges, heat index, wind gust ratio, monsoon season encoding) ✅ Label encoding for categorical variables (city, season) ✅ StandardScaler normalization (mean=0, std=1)
+Ethical data use | Dataset is publicly available on Kaggle (Open-Meteo API weather data). Contains no personal or sensitive information — only meteorological measurements and geographic location data.
+
+**Implementation:** See `01_data_preprocessing.py` (Steps 1–10)
+
+**Plots Generated:**
+- `plots/01_missing_values.png` — Missing value analysis
+- `plots/02_target_distribution.png` — Class balance visualization
+- `plots/03_temperature_distributions.png` — Feature distributions
+- `plots/04_monthly_precipitation.png` — Monthly rainfall patterns
+- `plots/05_rain_by_season.png` — Seasonal rain patterns
+- `plots/06_rain_by_city.png` — City-wise rain probability
+- `plots/07_correlation_heatmap.png` — Feature correlations
+- `plots/08_boxplots_by_target.png` — Feature distributions by class
+
+---
+
+### 2. Selection of a New Machine Learning Algorithm (15 marks)
+
+**Requirement** | **How It Was Implemented**
+---|---
+Choose an algorithm (avoid deep learning) | **XGBoost (Extreme Gradient Boosting)** — a gradient boosting framework that builds an ensemble of decision trees sequentially. It is NOT a deep learning model.
+Why was this algorithm selected | XGBoost was selected because: **(1)** It excels on tabular/structured data like weather measurements, **(2)** It provides built-in feature importance for interpretability, **(3)** It includes L1/L2 regularization to prevent overfitting, **(4)** It handles missing values natively, **(5)** It supports parallel processing for fast training, and **(6)** It is widely used in industry and competitions for classification tasks.
+How it differs from standard models | **vs. Decision Trees:** XGBoost uses an *ensemble* of many weak decision trees combined via gradient boosting, rather than a single tree. It also adds regularization (L1, L2, gamma) to prevent overfitting. **vs. Logistic Regression:** XGBoost captures complex *non-linear relationships* between features, while logistic regression assumes a linear decision boundary. **vs. k-NN:** XGBoost doesn't suffer from the *curse of dimensionality* and doesn't require distance computations across all training samples at prediction time. **vs. Random Forest:** XGBoost uses *sequential boosting* (each tree corrects errors from the previous one) instead of independent bagging. It also uses second-order gradient information (Hessian) for more precise optimization.
+
+**Implementation:** See `02_model_training.py` (docstring at top of file explains algorithm choice)
+
+---
+
+### 3. Model Training and Evaluation (20 marks)
+
+**Requirement** | **How It Was Implemented**
+---|---
+Train/validation/test split | **70% / 15% / 15%** split with stratification to preserve class proportions (Rain: 81.9%, No Rain: 18.1% in all sets). Implemented using `train_test_split` with `stratify=y`.
+Hyperparameter choices | **GridSearchCV** with 3-fold cross-validation was used to search over: `n_estimators` (100, 200), `max_depth` (4, 6), `learning_rate` (0.05, 0.1), `min_child_weight` (1, 3), `subsample` (0.8), `colsample_bytree` (0.8). Additional regularization: `reg_alpha=0.1` (L1), `reg_lambda=1.0` (L2), `gamma=0.1` (minimum loss reduction).
+Performance metrics used | **Accuracy**, **Precision**, **Recall**, **F1-Score**, **AUC-ROC**, **Average Precision**, **Confusion Matrix**, and **5-fold Cross-Validation**. Metrics evaluated on all three sets (train, validation, test) to check for overfitting.
+Results obtained | **Test Set:** Accuracy ≈ 0.89, AUC-ROC ≈ 0.94. The small gap between train and test performance indicates the model generalizes well without significant overfitting. The 5-fold CV F1 score is consistent across folds, confirming robust performance.
+Tables, graphs, and plots | ✅ Confusion Matrix (raw + normalized) ✅ ROC Curves (train/val/test overlay) ✅ Precision-Recall Curves ✅ Feature Importance bar chart ✅ Performance Comparison bar chart across all metrics and sets
+
+**Implementation:** See `02_model_training.py` (Steps 1–7)
+
+**Plots Generated:**
+- `plots/09_confusion_matrix.png` — Confusion matrix (raw + normalized)
+- `plots/10_roc_curve.png` — ROC curves for all sets
+- `plots/11_precision_recall_curve.png` — Precision-Recall curves
+- `plots/12_feature_importance.png` — XGBoost feature importance
+- `plots/13_performance_comparison.png` — Metric comparison across sets
+
+---
+
+### 4. Explainability & Interpretation (20 marks)
+
+The assignment requires **at least one** XAI method. We implemented **all four** suggested methods:
+
+**Method** | **How It Was Implemented**
+---|---
+**SHAP** | ✅ `TreeExplainer` computes SHAP values for 1,000 test samples. Generated: **(1)** Summary bar plot showing global feature importance via mean absolute SHAP values, **(2)** Beeswarm plot showing the direction and magnitude of each feature's impact, **(3)** Dependence plots for top 4 features showing interaction effects, **(4)** Waterfall plots for individual rain and no-rain predictions.
+**LIME** | ✅ `LimeTabularExplainer` generates local explanations for individual predictions. Generated LIME explanation plots for both a correct rain prediction and a correct no-rain prediction, showing which features pushed the prediction in each direction.
+**Feature Importance Analysis** | ✅ Three XGBoost built-in importance types compared: **Weight** (how often a feature is used in splits), **Gain** (average improvement when the feature is used), **Cover** (average number of samples affected). Also computed **Permutation Importance** (shuffling each feature and measuring accuracy drop).
+**Partial Dependence Plots (PDP)** | ✅ Generated PDPs for the top 6 most important features, showing the marginal effect of each feature on the predicted rain probability while averaging over all other features.
+
+**What the model has learned:**
+- `precipitation_hours` is the single most influential feature — if it rained for many hours today, tomorrow is very likely to be rainy too.
+- `precipitation_sum` and `rain_sum` reinforce this precipitation persistence pattern.
+- `temp_diff_apparent` (gap between actual and "feels like" temperature) serves as a humidity proxy.
+- `day_of_year` captures Sri Lanka's monsoon seasonality without explicitly encoding calendar features.
+- Wind conditions signal approaching weather fronts.
+
+**Alignment with domain knowledge:**
+- ✅ Sri Lanka's two monsoon seasons (NE Monsoon Dec–Feb, SW Monsoon May–Sep) are captured by seasonal features
+- ✅ Precipitation persistence (today's rain predicts tomorrow) is a well-established meteorological phenomenon
+- ✅ City-level variations reflect the geographic wet zone (Colombo, Ratnapura) vs. dry zone (Jaffna, Anuradhapura) differences
+- ✅ Solar radiation inversely correlates with rainfall (cloudy/rainy days have less radiation)
+
+**Implementation:** See `03_explainability.py` (Sections 1–5)
+
+**Plots Generated:**
+- `plots/14_shap_summary_bar.png` — SHAP global importance
+- `plots/15_shap_beeswarm.png` — SHAP beeswarm (impact + direction)
+- `plots/16_shap_dependence.png` — SHAP dependence for top features
+- `plots/17_shap_waterfall_rain.png` — SHAP waterfall for a rain prediction
+- `plots/18_shap_waterfall_norain.png` — SHAP waterfall for a no-rain prediction
+- `plots/19_lime_rain.png` — LIME explanation (rain)
+- `plots/20_lime_norain.png` — LIME explanation (no rain)
+- `plots/21_xgb_importance_types.png` — XGBoost importance (weight/gain/cover)
+- `plots/22_permutation_importance.png` — Permutation importance
+- `plots/23_partial_dependence.png` — Partial dependence plots
+
+---
+
+### 5. Critical Discussion (10 marks)
+
+#### Limitations of the Model
+- **Class Imbalance:** The dataset is imbalanced (81.9% rain vs. 18.1% no rain), which may bias the model toward predicting rain more often. Techniques like SMOTE or class weighting could improve recall for the minority class.
+- **Temporal Leakage Risk:** Features like `is_rainy` and `precipitation_sum` are derived from the same-day data. In a real deployment, these would need to come from real-time sensor readings.
+- **Limited Feature Set:** The model doesn't include humidity, cloud cover, or atmospheric pressure, which are strong rainfall predictors. These weren't available in the dataset.
+
+#### Data Quality Issues
+- **Missing Values:** Some rows contained NaN values and were dropped. This could introduce a slight bias if missing data isn't random (e.g., sensors failing during extreme weather).
+- **Temporal Coverage:** Data spans 2010–2023. Climate change may shift rainfall patterns, meaning the model could become less accurate over time without retraining.
+- **Geographic Resolution:** The dataset covers 30 cities, but doesn't capture microclimates between cities, particularly in the central highlands.
+
+#### Risks of Bias or Unfairness
+- **Geographic Bias:** Cities in the wet zone (e.g., Colombo, Ratnapura) have more rain events, so the model may perform better for these locations than for dry-zone cities with fewer training examples.
+- **Seasonal Bias:** The dataset may have unequal representation of different monsoon seasons depending on the exact date range.
+
+#### Potential Real-World Impact and Ethical Considerations
+- **Positive Impact:** Accurate rain prediction can help farmers plan irrigation and harvesting, reduce weather-related crop losses, improve disaster preparedness during monsoons, and assist urban planning for flood-prone areas.
+- **Ethical Considerations:** If deployed for agricultural insurance or disaster relief allocation, prediction errors could disproportionately affect vulnerable communities. The model should be transparent about its confidence levels and should not be the sole basis for critical decisions.
+- **Environmental Responsibility:** The model uses publicly available weather data and doesn't require additional resource-intensive data collection.
+
+---
+
+### 6. Report Quality & Technical Clarity (10 marks)
+
+- All code is thoroughly documented with docstrings and step-by-step comments
+- Each script prints clear progress indicators and formatted result summaries
+- Plots use professional formatting with titles, labels, legends, and appropriate color schemes
+- This README provides a comprehensive overview mapping each requirement to its implementation
+- Code follows a logical pipeline: preprocessing → training → explainability → front-end
+
+---
+
+### 7. Bonus: Front-End Integration (10 marks)
+
+**Requirement** | **How It Was Implemented**
+---|---
+Integrating the model into a front-end | ✅ Built a **Streamlit web application** (`app.py`) with 4 pages
+Allowing users to input data | ✅ The **"Make Prediction"** page provides interactive sliders and dropdowns for all weather features (temperature, precipitation, wind, city, month)
+View predictions | ✅ Predictions are displayed with a **confidence percentage** and a clear Rain/No Rain result with visual styling
+View explanations | ✅ Each prediction includes **real-time SHAP explanations** showing which features drove the prediction, plus full access to all SHAP, LIME, Feature Importance, and PDP plots
+
+**App Pages:**
+1. **🌦️ Make Prediction** — Interactive input form with instant SHAP-based explanations
+2. **📊 Model Performance** — Metrics dashboard with all evaluation plots
+3. **🔍 Explainability** — Tabbed view of SHAP, LIME, Feature Importance, and PDP analyses
+4. **📈 Data Insights** — All EDA visualizations from preprocessing
+
+**Run command:** `py -m streamlit run app.py` → Opens at `http://localhost:8501`
+
+---
+
+## Technologies Used
+
+| Technology | Purpose |
+|-----------|---------|
+| Python 3.9 | Programming language |
+| Pandas / NumPy | Data manipulation |
+| Scikit-learn | Preprocessing, metrics, PDP, permutation importance |
+| XGBoost | Machine learning algorithm |
+| SHAP | Explainability (Shapley values) |
+| LIME | Local interpretability |
+| Matplotlib / Seaborn | Visualization |
+| Streamlit | Front-end web application |
+
+---
+
+## Dataset Information
+
+- **Name:** Sri Lanka Weather Dataset
+- **Source:** Kaggle (Open-Meteo historical weather API)
+- **Coverage:** 30 cities across Sri Lanka
+- **Time Range:** January 2010 – June 2023
+- **Records:** 147,480 daily observations
+- **Features:** Weather code, temperatures (actual + apparent), solar radiation, precipitation, wind speed/gusts/direction, evapotranspiration, sunrise/sunset, elevation, latitude/longitude, city
