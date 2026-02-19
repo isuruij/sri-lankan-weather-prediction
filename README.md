@@ -10,12 +10,12 @@
 |------|---------|
 | `01_data_preprocessing.py` | Data loading, cleaning, EDA, feature engineering, splitting |
 | `02_model_training.py` | XGBoost model training, hyperparameter tuning, evaluation |
-| `03_explainability.py` | SHAP, LIME, Feature Importance, PDP analysis |
+| `03_explainability.py` | SHAP and LIME explainability analysis |
 | `app.py` | Streamlit front-end for predictions & explanations |
 | `SriLanka_Weather_Dataset.csv` | Raw dataset (Kaggle) |
 | `processed_data/` | Cleaned & split data, scaler, encoders |
 | `models/` | Trained XGBoost model & hyperparameters |
-| `plots/` | All generated EDA and evaluation plots (23 total) |
+| `plots/` | All generated EDA and evaluation plots |
 
 ---
 
@@ -102,14 +102,12 @@ Tables, graphs, and plots | ✅ Confusion Matrix (raw + normalized) ✅ ROC Curv
 
 ### 4. Explainability & Interpretation (20 marks)
 
-The assignment requires **at least one** XAI method. We implemented **all four** suggested methods:
+The assignment requires **at least one** XAI method. We implemented **two** methods:
 
 **Method** | **How It Was Implemented**
 ---|---
 **SHAP** | ✅ `TreeExplainer` computes SHAP values for 1,000 test samples. Generated: **(1)** Summary bar plot showing global feature importance via mean absolute SHAP values, **(2)** Beeswarm plot showing the direction and magnitude of each feature's impact, **(3)** Dependence plots for top 4 features showing interaction effects, **(4)** Waterfall plots for individual rain and no-rain predictions.
 **LIME** | ✅ `LimeTabularExplainer` generates local explanations for individual predictions. Generated LIME explanation plots for both a correct rain prediction and a correct no-rain prediction, showing which features pushed the prediction in each direction.
-**Feature Importance Analysis** | ✅ Three XGBoost built-in importance types compared: **Weight** (how often a feature is used in splits), **Gain** (average improvement when the feature is used), **Cover** (average number of samples affected). Also computed **Permutation Importance** (shuffling each feature and measuring accuracy drop).
-**Partial Dependence Plots (PDP)** | ✅ Generated PDPs for the top 6 most important features, showing the marginal effect of each feature on the predicted rain probability while averaging over all other features.
 
 **What the model has learned:**
 - `precipitation_hours` is the single most influential feature — if it rained for many hours today, tomorrow is very likely to be rainy too.
@@ -124,7 +122,7 @@ The assignment requires **at least one** XAI method. We implemented **all four**
 - ✅ City-level variations reflect the geographic wet zone (Colombo, Ratnapura) vs. dry zone (Jaffna, Anuradhapura) differences
 - ✅ Solar radiation inversely correlates with rainfall (cloudy/rainy days have less radiation)
 
-**Implementation:** See `03_explainability.py` (Sections 1–5)
+**Implementation:** See `03_explainability.py` (Sections 1–3)
 
 **Plots Generated:**
 - `plots/14_shap_summary_bar.png` — SHAP global importance
@@ -134,9 +132,6 @@ The assignment requires **at least one** XAI method. We implemented **all four**
 - `plots/18_shap_waterfall_norain.png` — SHAP waterfall for a no-rain prediction
 - `plots/19_lime_rain.png` — LIME explanation (rain)
 - `plots/20_lime_norain.png` — LIME explanation (no rain)
-- `plots/21_xgb_importance_types.png` — XGBoost importance (weight/gain/cover)
-- `plots/22_permutation_importance.png` — Permutation importance
-- `plots/23_partial_dependence.png` — Partial dependence plots
 
 ---
 
@@ -180,12 +175,12 @@ The assignment requires **at least one** XAI method. We implemented **all four**
 Integrating the model into a front-end | ✅ Built a **Streamlit web application** (`app.py`) with 4 pages
 Allowing users to input data | ✅ The **"Make Prediction"** page provides interactive sliders and dropdowns for all weather features (temperature, precipitation, wind, city, month)
 View predictions | ✅ Predictions are displayed with a **confidence percentage** and a clear Rain/No Rain result with visual styling
-View explanations | ✅ Each prediction includes **real-time SHAP explanations** showing which features drove the prediction, plus full access to all SHAP, LIME, Feature Importance, and PDP plots
+View explanations | ✅ Each prediction includes **real-time SHAP explanations** showing which features drove the prediction, plus full access to all SHAP and LIME plots
 
 **App Pages:**
 1. **🌦️ Make Prediction** — Interactive input form with instant SHAP-based explanations
 2. **📊 Model Performance** — Metrics dashboard with all evaluation plots
-3. **🔍 Explainability** — Tabbed view of SHAP, LIME, Feature Importance, and PDP analyses
+3. **🔍 Explainability** — Tabbed view of SHAP and LIME analyses
 4. **📈 Data Insights** — All EDA visualizations from preprocessing
 
 **Run command:** `py -m streamlit run app.py` → Opens at `http://localhost:8501`
@@ -198,7 +193,7 @@ View explanations | ✅ Each prediction includes **real-time SHAP explanations**
 |-----------|---------|
 | Python 3.9 | Programming language |
 | Pandas / NumPy | Data manipulation |
-| Scikit-learn | Preprocessing, metrics, PDP, permutation importance |
+| Scikit-learn | Preprocessing, metrics, evaluation |
 | XGBoost | Machine learning algorithm |
 | SHAP | Explainability (Shapley values) |
 | LIME | Local interpretability |

@@ -339,7 +339,7 @@ elif page == "📊 Model Performance":
 elif page == "🔍 Explainability":
     st.header("🔍 Model Explainability (XAI)")
     
-    tab1, tab2, tab3, tab4 = st.tabs(["SHAP", "LIME", "Feature Importance", "PDP"])
+    tab1, tab2 = st.tabs(["SHAP", "LIME"])
     
     with tab1:
         st.subheader("SHAP (SHapley Additive exPlanations)")
@@ -378,29 +378,6 @@ elif page == "🔍 Explainability":
             if os.path.exists(path):
                 st.subheader(title)
                 st.image(path, use_container_width=True)
-    
-    with tab3:
-        st.subheader("Feature Importance Analysis")
-        
-        importance_plots = {
-            'XGBoost Importance Types': 'plots/21_xgb_importance_types.png',
-            'Permutation Importance': 'plots/22_permutation_importance.png',
-        }
-        
-        for title, path in importance_plots.items():
-            if os.path.exists(path):
-                st.subheader(title)
-                st.image(path, use_container_width=True)
-    
-    with tab4:
-        st.subheader("Partial Dependence Plots")
-        st.write("""
-        PDPs show the marginal effect of a feature on the predicted outcome.
-        They help understand the relationship between features and predictions.
-        """)
-        
-        if os.path.exists('plots/23_partial_dependence.png'):
-            st.image('plots/23_partial_dependence.png', use_container_width=True)
 
 # ---------------------------------------------------------------
 # PAGE 4: DATA INSIGHTS

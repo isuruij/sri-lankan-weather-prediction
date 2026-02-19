@@ -7,13 +7,9 @@ Explainability Methods Applied:
        - Global feature importance 
        - Summary plot (beeswarm)
        - Dependence plots
+       - Waterfall plots for individual predictions
     2. LIME (Local Interpretable Model-agnostic Explanations)
-       - Individual prediction explanations
-    3. Feature Importance Analysis
-       - XGBoost built-in (gain, weight, cover)
-       - Permutation importance
-    4. Partial Dependence Plots (PDP)
-       - Shows marginal effect of features on predictions
+       - Individual prediction explanations for rain and no-rain
 ===============================================================================
 """
 
@@ -26,7 +22,7 @@ import seaborn as sns
 import shap
 import lime
 import lime.lime_tabular
-from sklearn.inspection import PartialDependenceDisplay, permutation_importance
+# sklearn imports not needed (using only SHAP and LIME)
 import joblib
 import os
 import warnings
@@ -236,103 +232,10 @@ if len(no_rain_correct) > 0:
     print("✓ LIME no-rain explanation saved")
 
 # ---------------------------------------------------------------
-# 3. FEATURE IMPORTANCE ANALYSIS (Multiple Methods)
+# 3. INTERPRETATION SUMMARY
 # ---------------------------------------------------------------
 print("\n" + "=" * 70)
-print("3. FEATURE IMPORTANCE ANALYSIS")
-print("=" * 70)
-
-# 3.1 XGBoost built-in importance types
-importance_types = ['weight', 'gain', 'cover']
-fig, axes = plt.subplots(1, 3, figsize=(24, 10))
-
-for idx, imp_type in enumerate(importance_types):
-    importances = model.get_booster().get_score(importance_type=imp_type)
-    imp_df = pd.DataFrame({
-        'Feature': list(importances.keys()),
-        'Importance': list(importances.values())
-    }).sort_values('Importance', ascending=True).tail(15)
-    
-    imp_df.plot(kind='barh', x='Feature', y='Importance', ax=axes[idx],
-                color=['#3498db', '#e74c3c', '#2ecc71'][idx], legend=False)
-    axes[idx].set_title(f'Feature Importance ({imp_type.upper()})', fontsize=12, fontweight='bold')
-    axes[idx].set_xlabel('Importance Score')
-
-plt.suptitle('XGBoost Feature Importance by Different Metrics', fontsize=16, fontweight='bold', y=1.02)
-plt.tight_layout()
-plt.savefig('plots/21_xgb_importance_types.png', dpi=150, bbox_inches='tight')
-plt.close()
-print("✓ XGBoost importance types plot saved")
-
-# 3.2 Permutation Importance
-print("\nComputing Permutation Importance (this may take a moment)...")
-perm_importance = permutation_importance(
-    model, X_test_sample, y_test_sample,
-    n_repeats=10, random_state=42, n_jobs=-1
-)
-
-fig, ax = plt.subplots(figsize=(12, 10))
-perm_df = pd.DataFrame({
-    'Feature': feature_columns,
-    'Importance Mean': perm_importance.importances_mean,
-    'Importance Std': perm_importance.importances_std
-}).sort_values('Importance Mean', ascending=True)
-
-ax.barh(perm_df['Feature'], perm_df['Importance Mean'],
-        xerr=perm_df['Importance Std'], color='#9b59b6', alpha=0.8)
-ax.set_title('Permutation Feature Importance', fontsize=14, fontweight='bold')
-ax.set_xlabel('Mean Accuracy Decrease')
-plt.tight_layout()
-plt.savefig('plots/22_permutation_importance.png', dpi=150, bbox_inches='tight')
-plt.close()
-print("✓ Permutation importance plot saved")
-
-# Print permutation importance
-print("\nTop 10 Features by Permutation Importance:")
-for _, row in perm_df.sort_values('Importance Mean', ascending=False).head(10).iterrows():
-    print(f"  {row['Feature']:>35s}: {row['Importance Mean']:.4f} ± {row['Importance Std']:.4f}")
-
-# ---------------------------------------------------------------
-# 4. PARTIAL DEPENDENCE PLOTS (PDP)
-# ---------------------------------------------------------------
-print("\n" + "=" * 70)
-print("4. PARTIAL DEPENDENCE PLOTS (PDP)")
-print("=" * 70)
-
-# Get indices of top features
-top_pdp_features = perm_df.sort_values('Importance Mean', ascending=False).head(6)['Feature'].tolist()
-top_pdp_indices = [feature_columns.index(f) for f in top_pdp_features if f in feature_columns]
-
-print(f"\nGenerating PDP for top features: {top_pdp_features}")
-
-fig, axes = plt.subplots(2, 3, figsize=(20, 12))
-axes_flat = axes.flatten()
-
-for idx, feat_idx in enumerate(top_pdp_indices[:6]):
-    try:
-        PartialDependenceDisplay.from_estimator(
-            model, X_test_sample, [feat_idx],
-            feature_names=feature_columns,
-            ax=axes_flat[idx],
-            kind='average',
-            line_kw={'color': '#e74c3c', 'linewidth': 2}
-        )
-        axes_flat[idx].set_title(f'PDP: {feature_columns[feat_idx]}', fontsize=11, fontweight='bold')
-    except Exception as e:
-        axes_flat[idx].text(0.5, 0.5, f'Error: {str(e)[:50]}',
-                           transform=axes_flat[idx].transAxes, ha='center')
-
-plt.suptitle('Partial Dependence Plots - Top Features', fontsize=16, fontweight='bold', y=1.02)
-plt.tight_layout()
-plt.savefig('plots/23_partial_dependence.png', dpi=150, bbox_inches='tight')
-plt.close()
-print("✓ Partial dependence plots saved")
-
-# ---------------------------------------------------------------
-# 5. INTERPRETATION SUMMARY
-# ---------------------------------------------------------------
-print("\n" + "=" * 70)
-print("5. INTERPRETATION SUMMARY")
+print("3. INTERPRETATION SUMMARY")
 print("=" * 70)
 
 print("""
@@ -382,8 +285,5 @@ print("  17_shap_waterfall_rain.png   - SHAP waterfall for rain prediction")
 print("  18_shap_waterfall_norain.png - SHAP waterfall for no-rain prediction")
 print("  19_lime_rain.png             - LIME explanation for rain prediction")
 print("  20_lime_norain.png           - LIME explanation for no-rain")
-print("  21_xgb_importance_types.png  - XGBoost importance (weight/gain/cover)")
-print("  22_permutation_importance.png - Permutation importance")
-print("  23_partial_dependence.png    - Partial dependence plots")
 
 print("\n✓ Explainability analysis complete! Run 'py -m streamlit run app.py' for the front-end demo.")
