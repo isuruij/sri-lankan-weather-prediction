@@ -1,32 +1,4 @@
-"""
-===============================================================================
-Sri Lanka Weather Prediction - Model Training & Evaluation
-===============================================================================
-Algorithm: XGBoost (Extreme Gradient Boosting)
 
-Why XGBoost?
-    - Goes beyond standard models (Decision Trees, Logistic Regression, k-NN)
-    - Uses gradient boosting with regularization (L1/L2)
-    - Handles missing values natively
-    - Built-in feature importance
-    - Excellent performance on tabular data
-    - Supports parallel processing for speed
-    - Better generalization through tree pruning and shrinkage
-
-How it differs from standard models:
-    - Unlike Decision Trees: Uses ensemble of weak learners with boosting
-    - Unlike Logistic Regression: Captures non-linear relationships
-    - Unlike k-NN: Doesn't suffer from curse of dimensionality
-    - Unlike Random Forest: Uses sequential boosting instead of bagging,
-      adds regularization, and uses second-order gradient information
-
-Evaluation Metrics:
-    - Accuracy, Precision, Recall, F1-Score
-    - Area Under ROC Curve (AUC-ROC)
-    - Confusion Matrix
-    - Classification Report
-===============================================================================
-"""
 
 import pandas as pd
 import numpy as np

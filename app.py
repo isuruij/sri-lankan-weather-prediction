@@ -123,7 +123,7 @@ page = st.sidebar.radio(
 # PAGE 1: MAKE PREDICTION
 # ---------------------------------------------------------------
 if page == "🌦️ Make Prediction":
-    st.header("🌦️ Weather Prediction")
+    st.header("🌦️ Rain Prediction")
     st.write("Enter today's weather conditions to predict if it will rain tomorrow.")
     
     col1, col2, col3 = st.columns(3)
