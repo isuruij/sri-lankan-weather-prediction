@@ -3,7 +3,7 @@
 Sri Lanka Weather Prediction - Streamlit Front-End Application
 ===============================================================================
 A web application that allows users to:
-    1. Input weather conditions
+    1. Input weather conditions 
     2. Get rain predictions with confidence
     3. View SHAP-based explanations
     4. Explore model performance and feature importance
